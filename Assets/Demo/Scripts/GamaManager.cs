@@ -87,7 +87,7 @@ public class GamaManager : MonoBehaviour
             this.question.text = this.questions[UnityEngine.Random.Range(0, this.questions.Count)];
             this.information.text = string.Empty;
 
-            this.command.SetWordExclude(yes, true);
+            this.command.SetWordWeight(yes, 0f);
             while (true)
             {
                 yield return this.command.IsSampling;
@@ -97,6 +97,7 @@ public class GamaManager : MonoBehaviour
                     this.question.text = word + "ですか？";
                     selected = word;
                     viseme = this.command.Visemes;
+                    Debug.Log("0[" + word + "] visims:" + string.Join(", ", viseme));
                     break;
                 }
                 else
@@ -105,7 +106,7 @@ public class GamaManager : MonoBehaviour
                 }
             }
 
-            this.command.SetWordExclude(yes, false);
+            this.command.SetWordWeight(yes, 2f);
             this.information.text = waitMesssage;
             while (true)
             {
@@ -120,6 +121,7 @@ public class GamaManager : MonoBehaviour
                     if (this.command.Updated)
                     {
                         word = this.command.GetSelectedWord();
+                        Debug.Log("1[" + word + "] visims:" + string.Join(", ", this.command.Visemes));
                         break;
                     }
                 }
@@ -127,8 +129,11 @@ public class GamaManager : MonoBehaviour
                 if (word == yes)
                 {
                     // 正解
-                    this.command.UpdateWord(selected, viseme);
-                    Save();
+                    if (2 < viseme.Length)
+                    {
+                        this.command.UpdateWord(selected, viseme);
+                        Save();
+                    }
                     this.question.text = "ありがとうございます。\nそれでは、";
                     this.information.text = string.Empty;
                     yield return new Wait(1.5f).Update;

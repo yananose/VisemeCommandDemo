@@ -144,7 +144,7 @@ namespace Omochaya
             public string word;
             public float average;
             public List<JsonData.Element.Info> indecisive;
-            public bool exclude;
+            public float weight;
             // methods
             public void Setup(JsonData.Element element)
             {
@@ -158,14 +158,14 @@ namespace Omochaya
                     this.indecisive = new List<JsonData.Element.Info>();
                 }
                 this.average = GetAverage();
-                this.exclude = false;
+                this.weight = 1f;
             }
             public void Setup(string word)
             {
                 this.word = word;
                 this.indecisive = new List<JsonData.Element.Info>(0);
                 this.average = 0f;
-                this.exclude = false;
+                this.weight = 1f;
             }
             public void Setup(string word, int[] visemes)
             {
@@ -501,14 +501,11 @@ namespace Omochaya
             for (var i = 0; i < count; i++)
             {
                 var data = this.data[i];
-                if (!data.exclude)
+                var score = data.GetScore(visemes) * data.weight;
+                if (best < score)
                 {
-                    var score = data.GetScore(visemes); ;
-                    if (best < score)
-                    {
-                        best = score;
-                        ret = i;
-                    }
+                    best = score;
+                    ret = i;
                 }
             }
 
@@ -521,57 +518,57 @@ namespace Omochaya
         }
 
         /// <summary>
-        /// 単語を選択肢から除外するか設定
+        /// 単語の選ばれやすさを設定
         /// </summary>
         /// <param name="word">単語</param>
-        /// <param name="exclude">除外するか？</param>
+        /// <param name="weight">選ばれやすさ</param>
         /// <returns>設定できたか？</returns>
-        public bool SetWordExclude(string word, bool exclude)
+        public bool SetWordWeight(string word, float weight)
         {
             var index = GetWordIndex(word);
-            return SetWordExclude(index, exclude);
+            return SetWordWeight(index, weight);
         }
 
         /// <summary>
-        /// 単語を選択肢から除外するか設定
+        /// 単語の選ばれやすさを設定
         /// </summary>
         /// <param name="index">単語のインデックス</param>
-        /// <param name="exclude">除外するか？</param>
+        /// <param name="weight">選ばれやすさ</param>
         /// <returns>設定できたか？</returns>
-        public bool SetWordExclude(int index, bool exclude)
+        public bool SetWordWeight(int index, float weight)
         {
             if (index < 0 || GetWordsCount() <= index)
             {
                 return false;
             }
             var data = this.data[index];
-            data.exclude = exclude;
+            data.weight = weight;
             return true;
         }
 
         /// <summary>
-        /// 単語が選択肢から除外されているか取得
+        /// 単語の選ばれやすさを取得
         /// </summary>
         /// <param name="word">単語</param>
-        /// <returns>除外されているか？</returns>
-        public bool IsWordExclude(string word)
+        /// <returns>選ばれやすさ</returns>
+        public float GetWordWeight(string word)
         {
             var index = GetWordIndex(word);
-            return IsWordExclude(index);
+            return GetWordWeight(index);
         }
 
         /// <summary>
-        /// 単語が選択肢から除外されているか取得
+        /// 単語の選ばれやすさを取得
         /// </summary>
         /// <param name="index">単語のインデックス</param>
-        /// <returns>除外されているか？</returns>
-        public bool IsWordExclude(int index)
+        /// <returns>選ばれやすさ</returns>
+        public float GetWordWeight(int index)
         {
             if (index < 0 || GetWordsCount() <= index)
             {
-                return true;
+                return 0f;
             }
-            return this.data[index].exclude;
+            return this.data[index].weight;
         }
 
         /// <summary>
